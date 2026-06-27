@@ -343,10 +343,10 @@ export default function DesignerPage() {
   };
 
   return (
-    <div style={{ display:"flex", height:"100vh", ...S.panel, overflow:"hidden", fontFamily:"Outfit, sans-serif" }}>
+    <div className="flex flex-col lg:flex-row min-h-screen lg:h-screen bg-[#1E1C1A] text-[#D0C8C0] font-['Outfit'] overflow-y-auto lg:overflow-hidden">
 
       {/* ── LEFT SIDEBAR ───────────────────────────────────────────────────── */}
-      <div style={{ width:230, display:"flex", flexDirection:"column", borderRight:S.border, flexShrink:0 }}>
+      <div className="w-full lg:w-[230px] flex flex-col border-b lg:border-b-0 lg:border-r border-[#2E2C29] shrink-0 max-h-[40vh] lg:max-h-none overflow-hidden">
         {/* Logo */}
         <div style={{ padding:"16px 16px 12px", borderBottom:S.border }}>
           <div style={{ fontSize:13, fontWeight:700, color:"#C45D3E", letterSpacing:"0.1em", textTransform:"uppercase" }}>Digital Heroes</div>
@@ -497,10 +497,10 @@ export default function DesignerPage() {
       </div>
 
       {/* ── CENTRE ─────────────────────────────────────────────────────────── */}
-      <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
+      <div className="w-full lg:flex-1 flex flex-col overflow-hidden min-h-[50vh] lg:min-h-0 relative">
 
         {/* Toolbar */}
-        <div style={{ background:"#1A1816", borderBottom:S.border, padding:"9px 16px", display:"flex", alignItems:"center", gap:6 }}>
+        <div style={{ background:"#1A1816", borderBottom:S.border, padding:"9px 16px", display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
           {/* Back button */}
           <button onClick={() => router.push("/dashboard")} style={{ ...S.btn, padding:"6px 12px", marginRight:8, background:"transparent", borderColor:"#333" }}>
             ← Dashboard
@@ -551,7 +551,7 @@ export default function DesignerPage() {
       </div>
 
       {/* ── RIGHT PROPERTIES PANEL ─────────────────────────────────────────── */}
-      <div style={{ width:256, display:"flex", flexDirection:"column", borderLeft:S.border, flexShrink:0 }}>
+      <div className="w-full lg:w-[256px] flex flex-col border-t lg:border-t-0 lg:border-l border-[#2E2C29] shrink-0 max-h-[50vh] lg:max-h-none overflow-hidden">
         <div style={{ padding:"13px 16px", borderBottom:S.border, fontSize:11, fontWeight:700, color:"#D0C8C0", textTransform:"uppercase", letterSpacing:"0.1em" }}>
           Properties
         </div>
