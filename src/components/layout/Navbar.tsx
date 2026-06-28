@@ -43,7 +43,12 @@ export default function Navbar() {
           .eq("id", session.user.id)
           .single()
           .then(({ data }) => {
-            if (data) setUser({ name: data.full_name, role: data.role });
+            if (data) {
+              setUser({ name: data.full_name, role: data.role });
+            } else {
+              const fallbackName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || "User";
+              setUser({ name: fallbackName, role: "user" });
+            }
           });
       } else {
         // No active session — clear any stale cart data
@@ -61,7 +66,12 @@ export default function Navbar() {
             .eq("id", session.user.id)
             .single()
             .then(({ data }) => {
-              if (data) setUser({ name: data.full_name, role: data.role });
+              if (data) {
+                setUser({ name: data.full_name, role: data.role });
+              } else {
+                const fallbackName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || "User";
+                setUser({ name: fallbackName, role: "user" });
+              }
             });
         } else {
           setUser(null);
