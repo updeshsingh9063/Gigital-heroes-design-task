@@ -91,10 +91,10 @@ export default function AdminDashboard() {
       if (profilesData) {
         setCustomers(profilesData.map((p: any) => ({
           id: p.id,
-          name: p.full_name,
-          email: p.email,
-          role: p.role,
-          joined: new Date(p.created_at).toLocaleDateString(),
+          name: p.full_name || p.name || "Unknown",
+          email: p.email || "—",
+          role: p.role || "user",
+          joined: p.created_at ? new Date(p.created_at).toLocaleDateString() : "—",
           status: "active",
         })));
       }
@@ -134,8 +134,8 @@ export default function AdminDashboard() {
   );
 
   const filteredCustomers = customers.filter((c) =>
-    c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-    c.email.toLowerCase().includes(customerSearch.toLowerCase())
+    (c.name || "").toLowerCase().includes(customerSearch.toLowerCase()) ||
+    (c.email || "").toLowerCase().includes(customerSearch.toLowerCase())
   );
 
   const stageCount = (idx: number) =>
@@ -361,7 +361,10 @@ export default function AdminDashboard() {
           <>
             <div className="dash-header">
               <h1 className="dash-title">Customers</h1>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--stone)" }}>{customers.length} total</div>
+              <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "center" }}>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--stone)" }}>{customers.length} total</div>
+                <button className="btn-ghost" style={{ padding: "6px 16px", fontSize: "13px" }} onClick={fetchAdminData}>🔄 Refresh</button>
+              </div>
             </div>
             <div style={{ marginBottom: "var(--space-lg)" }}>
               <input className="form-input" type="text" placeholder="Search customers by name or email..." value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} style={{ maxWidth: "400px" }} />
