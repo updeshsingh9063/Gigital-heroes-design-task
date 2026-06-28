@@ -39,11 +39,12 @@ export default function Dashboard() {
           .upsert({
             id: session.user.id,
             full_name: fallbackName,
-            role: "user",
+            email: session.user.email,
+            role: "customer",
           }, { onConflict: "id" })
           .select()
           .single();
-        resolvedProfile = newProf || { id: session.user.id, full_name: fallbackName, email: session.user.email, role: "user" };
+        resolvedProfile = newProf || { id: session.user.id, full_name: fallbackName, email: session.user.email, role: "customer" };
       }
 
       setProfile(resolvedProfile);
