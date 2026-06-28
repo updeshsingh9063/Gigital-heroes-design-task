@@ -27,13 +27,33 @@ export default function Dashboard() {
     if (session?.user) {
       const supabase = createClient();
       const { data: prof } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
-      setProfile(prof);
+      
+      let resolvedProfile = prof;
+
+      // If no profile row exists (e.g. new Google OAuth user), create one from their metadata
+      if (!prof) {
+        const meta = session.user.user_metadata || {};
+        const fallbackName = meta.full_name || meta.name || session.user.email?.split('@')[0] || "User";
+        const { data: newProf } = await supabase
+          .from("profiles")
+          .upsert({
+            id: session.user.id,
+            full_name: fallbackName,
+            email: session.user.email,
+            role: "user",
+          }, { onConflict: "id" })
+          .select()
+          .single();
+        resolvedProfile = newProf || { id: session.user.id, full_name: fallbackName, email: session.user.email, role: "user" };
+      }
+
+      setProfile(resolvedProfile);
       setProfileForm({
-        full_name: prof?.full_name || "",
-        phone: prof?.phone || "",
-        street: prof?.shipping_address?.street || "",
-        city: prof?.shipping_address?.city || "",
-        postcode: prof?.shipping_address?.postcode || "",
+        full_name: resolvedProfile?.full_name || "",
+        phone: resolvedProfile?.phone || "",
+        street: resolvedProfile?.shipping_address?.street || "",
+        city: resolvedProfile?.shipping_address?.city || "",
+        postcode: resolvedProfile?.shipping_address?.postcode || "",
       });
 
       const { data: ords } = await supabase.from("orders").select("*").eq("customer_id", session.user.id).order("created_at", { ascending: false });
