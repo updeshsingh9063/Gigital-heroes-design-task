@@ -171,11 +171,14 @@ export default function Navbar() {
           <Link href="/pricing" onClick={closeMobileNav}>Pricing</Link>
           <div className="mobile-nav-actions">
             {user ? (
-              user.role === "admin" ? (
-                <Link href="/admin" className="btn-ghost inline-block" onClick={closeMobileNav}>Admin Panel</Link>
-              ) : (
-                <Link href="/dashboard" className="btn-ghost inline-block" onClick={closeMobileNav}>My Account</Link>
-              )
+              <>
+                {user.role === "admin" ? (
+                  <Link href="/admin" className="btn-ghost inline-block" onClick={closeMobileNav}>Admin Panel</Link>
+                ) : (
+                  <Link href="/dashboard" className="btn-ghost inline-block" onClick={closeMobileNav}>My Account</Link>
+                )}
+                <button className="btn-primary" onClick={() => { closeMobileNav(); doSignOut(); }}>Sign Out</button>
+              </>
             ) : (
               <>
                 <button className="btn-ghost" onClick={() => { closeMobileNav(); setAuthMode("login"); }}>Sign In</button>
