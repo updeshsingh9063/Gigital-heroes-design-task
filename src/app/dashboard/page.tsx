@@ -168,14 +168,16 @@ export default function Dashboard() {
         <div style={{ padding: "var(--space-lg) 0", borderBottom: "1px solid var(--linen)", marginBottom: "var(--space-lg)" }}>
           <div style={{ fontFamily: "var(--font-display)", fontSize: "24px", fontWeight: 600, color: "var(--ink)" }}>My Account</div>
         </div>
-        {navItems.map((item) => (
-          <div key={item.key} className={`dash-nav-item ${activeSection === item.key ? "active" : ""}`} onClick={() => setActiveSection(item.key)}>
-            {item.label}
-            {item.key === "proofs" && pendingProofs > 0 && (
-              <span style={{ marginLeft: 8, background: "var(--accent)", color: "white", borderRadius: "var(--radius-full)", fontSize: 10, padding: "2px 7px", fontWeight: 700 }}>{pendingProofs}</span>
-            )}
-          </div>
-        ))}
+        <div className="dash-sidebar-nav-items">
+          {navItems.map((item) => (
+            <div key={item.key} className={`dash-nav-item ${activeSection === item.key ? "active" : ""}`} onClick={() => setActiveSection(item.key)}>
+              {item.label}
+              {item.key === "proofs" && pendingProofs > 0 && (
+                <span style={{ marginLeft: 8, background: "var(--accent)", color: "white", borderRadius: "var(--radius-full)", fontSize: 10, padding: "2px 7px", fontWeight: 700 }}>{pendingProofs}</span>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Main */}
