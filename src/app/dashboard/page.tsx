@@ -39,7 +39,6 @@ export default function Dashboard() {
           .upsert({
             id: session.user.id,
             full_name: fallbackName,
-            email: session.user.email,
             role: "user",
           }, { onConflict: "id" })
           .select()
