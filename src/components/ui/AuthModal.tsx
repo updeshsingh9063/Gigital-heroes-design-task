@@ -77,14 +77,25 @@ export default function AuthModal({ mode, onClose, onSwitchMode, onSuccess }: Au
     }
     
     setLoginError("");
-    // Fetch profile to get name and role
-    const { data: profile } = await supabase
+    
+    if (!data?.user) {
+      // Edge case where auth succeeds but user object is missing
+      onClose();
+      window.location.reload();
+      return;
+    }
+
+    // Fetch profile to get name and role safely
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("full_name, role")
       .eq("id", data.user.id)
       .single();
 
-    onSuccess(profile?.full_name || "User", profile?.role);
+    const finalName = profile?.full_name || data.user.user_metadata?.full_name || "User";
+    const finalRole = profile?.role || "user";
+
+    onSuccess(finalName, finalRole);
     onClose();
     showToast("Signed in successfully! Welcome back 👋", "success");
   };
