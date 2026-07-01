@@ -16,9 +16,27 @@ export default function AuthModal({ mode, onClose, onSwitchMode, onSuccess }: Au
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
+
+  const EyeIcon = ({ visible }: { visible: boolean }) => (
+    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+      {visible ? (
+        <>
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+          <circle cx="12" cy="12" r="3" />
+        </>
+      ) : (
+        <>
+          <path d="M17.94 17.94A10.94 10.94 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
+          <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
+          <line x1="1" y1="1" x2="23" y2="23" />
+        </>
+      )}
+    </svg>
+  );
 
   const doGoogleLogin = async () => {
     setLoading(true);
@@ -78,7 +96,7 @@ export default function AuthModal({ mode, onClose, onSwitchMode, onSuccess }: Au
     }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
     });
     setLoading(false);
     if (error) {
@@ -180,10 +198,17 @@ export default function AuthModal({ mode, onClose, onSwitchMode, onSuccess }: Au
                   <label className="form-label">Password</label>
                   <a href="#" onClick={(e) => { e.preventDefault(); onSwitchMode("forgot_password"); }} style={{ fontSize: "13px", color: "var(--accent)", fontWeight: 500 }}>Forgot password?</a>
                 </div>
-                <input className="form-input" type="password" placeholder="Enter your password" value={password}
-                  onChange={(e) => { setPassword(e.target.value); setLoginError(""); }}
-                  onKeyDown={(e) => e.key === "Enter" && doLogin()}
-                />
+                <div style={{ position: "relative" }}>
+                  <input className="form-input" type={showPassword ? "text" : "password"} placeholder="Enter your password" value={password}
+                    onChange={(e) => { setPassword(e.target.value); setLoginError(""); }}
+                    onKeyDown={(e) => e.key === "Enter" && doLogin()}
+                    style={{ paddingRight: "44px" }}
+                  />
+                  <button type="button" onClick={() => setShowPassword(v => !v)}
+                    style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--stone)", display: "flex", alignItems: "center", padding: 0 }}>
+                    <EyeIcon visible={showPassword} />
+                  </button>
+                </div>
               </div>
               {/* Inline error message */}
               {loginError && (
@@ -241,7 +266,13 @@ export default function AuthModal({ mode, onClose, onSwitchMode, onSuccess }: Au
               </div>
               <div className="form-group">
                 <label className="form-label">Password</label>
-                <input className="form-input" type="password" placeholder="Create a password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <div style={{ position: "relative" }}>
+                  <input className="form-input" type={showPassword ? "text" : "password"} placeholder="Create a password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ paddingRight: "44px" }} />
+                  <button type="button" onClick={() => setShowPassword(v => !v)}
+                    style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--stone)", display: "flex", alignItems: "center", padding: 0 }}>
+                    <EyeIcon visible={showPassword} />
+                  </button>
+                </div>
               </div>
               <button className="btn-accent btn-lg" style={{ width: "100%", marginBottom: "var(--space-md)" }} onClick={doRegister} disabled={loading}>
                 Create Account
