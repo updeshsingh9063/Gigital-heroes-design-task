@@ -259,7 +259,7 @@ export default function Dashboard() {
             {(() => {
               const preview = typeof window !== "undefined" ? localStorage.getItem("dh_design_preview") : null;
               const savedElements = typeof window !== "undefined" ? localStorage.getItem("dh_design") : null;
-              const designJobs = jobs.filter(j => j.artwork_json);
+              const designJobs = jobs.filter(j => j.artwork_json && j.artwork_json.preview);
 
               const orderLocalDraft = async () => {
                 const supabase = createClient();
