@@ -8,7 +8,7 @@ import ProductModal from "@/components/admin/ProductModal";
 const stages = ["quote", "order", "artwork", "proof", "production", "completed"];
 const stageLabels = ["Quote", "Order", "Artwork", "Proof", "Production", "Completed"];
 
-type AdminSection = "pipeline" | "analytics" | "customers" | "products" | "settings";
+type AdminSection = "pipeline" | "proofs" | "analytics" | "customers" | "products" | "settings";
 
 function statusLabel(s: string) {
   if (s === "pending") return "Pending";
