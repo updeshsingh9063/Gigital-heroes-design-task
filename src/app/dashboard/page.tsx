@@ -258,25 +258,46 @@ export default function Dashboard() {
             {/* Local saved design */}
             {(() => {
               const preview = typeof window !== "undefined" ? localStorage.getItem("dh_design_preview") : null;
+              const savedElements = typeof window !== "undefined" ? localStorage.getItem("dh_design") : null;
               const designJobs = jobs.filter(j => j.artwork_json);
+
+              const orderLocalDraft = async () => {
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) { showToast("Please sign in to order", "error"); return; }
+                const elements = savedElements ? JSON.parse(savedElements) : [];
+                if (!elements.length) { showToast("Your draft is empty. Add elements first.", ""); return; }
+                const orderId = `DH-DRAFT-${Date.now()}`;
+                const { error: oErr } = await supabase.from("orders").insert({ id: orderId, customer_id: session.user.id, subtotal: 12.5, vat: 2.5, total: 15, status: "pending" });
+                if (oErr) { showToast("Order failed: " + oErr.message, "error"); return; }
+                const { error: jErr } = await supabase.from("jobs").insert({ order_id: orderId, status: "proof", artwork_json: elements, files_ready: true, price: 15 });
+                if (jErr) { showToast("Job failed: " + jErr.message, "error"); return; }
+                showToast("Order placed for £15.00! 🎉", "success");
+                fetchData(session);
+              };
+
               return (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "var(--space-lg)" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "var(--space-lg)" }}>
                   {preview && (
                     <div style={{ background: "white", border: "1px solid var(--linen)", padding: "var(--space-md)", borderRadius: "var(--radius-lg)" }}>
                       <img src={preview} alt="Saved Design" style={{ width: "100%", borderRadius: "var(--radius-md)", border: "1px solid var(--linen)" }} />
                       <div style={{ marginTop: "var(--space-sm)", fontWeight: 600, color: "var(--ink)" }}>Local Draft</div>
-                      <div style={{ fontSize: 12, color: "var(--stone)", marginTop: 2 }}>Saved in browser</div>
-                      <Link href="/designer" style={{ display: "inline-block", marginTop: "var(--space-xs)", fontSize: "14px", color: "var(--accent)", textDecoration: "none" }}>Open in Designer →</Link>
+                      <div style={{ fontSize: 12, color: "var(--stone)", marginTop: 2 }}>Saved in browser · £15.00 fixed price</div>
+                      <div style={{ marginTop: "var(--space-sm)", display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <button className="btn-accent" style={{ padding: "6px 14px", fontSize: "13px", flex: 1 }} onClick={orderLocalDraft}>Order (£15)</button>
+                        <Link href="/designer" className="btn-ghost" style={{ padding: "6px 14px", fontSize: "13px", textAlign: "center" }}>Edit →</Link>
+                      </div>
                     </div>
                   )}
                   {designJobs.map(j => (
                     <div key={j.id} style={{ background: "white", border: "1px solid var(--linen)", padding: "var(--space-md)", borderRadius: "var(--radius-lg)" }}>
-                      <div style={{ background: "var(--paper)", borderRadius: "var(--radius-md)", padding: "var(--space-xl)", textAlign: "center", fontSize: 40, marginBottom: "var(--space-sm)" }}>🎨</div>
-                      <div style={{ fontWeight: 600, color: "var(--ink)", fontSize: 14 }}>Submitted Design</div>
+                      <div style={{ background: "linear-gradient(135deg, #4A7A8C22, #6B5B8C22)", borderRadius: "var(--radius-md)", padding: "var(--space-xl)", textAlign: "center", marginBottom: "var(--space-sm)", fontSize: 36 }}>🎨</div>
+                      <div style={{ fontWeight: 600, color: "var(--ink)", fontSize: 14 }}>Custom Design</div>
                       <div style={{ fontSize: 12, color: "var(--stone)", marginTop: 2 }}>Order {j.order_id} · {fmtDate(j.created_at)}</div>
-                      <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-                        <span className={`prod-status-badge ${j.status}`} style={{ fontSize: 11 }}>{j.status}</span>
-                        <button className="btn-ghost" style={{ padding: "3px 10px", fontSize: "11px" }} onClick={() => handleReorder(j)}>🔁 Reorder</button>
+                      <div style={{ fontSize: 12, color: "var(--graphite)", marginTop: 2 }}>£15.00 fixed price</div>
+                      <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                        <span className={`prod-status-badge ${j.status === "completed" ? "done" : "progress"}`} style={{ fontSize: 11 }}>{j.status}</span>
+                        <button className="btn-ghost" style={{ padding: "4px 12px", fontSize: "11px" }} onClick={() => handleReorder(j)}>🔁 Reorder</button>
                       </div>
                     </div>
                   ))}
