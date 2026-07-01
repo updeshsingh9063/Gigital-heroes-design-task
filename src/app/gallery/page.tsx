@@ -1,14 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useReveal } from "@/lib/utils";
-import { products } from "@/lib/data";
+import { createClient } from "@/lib/supabase/client";
+import { products as localProducts } from "@/lib/data";
 import Footer from "@/components/layout/Footer";
 
 export default function Gallery() {
   useReveal();
   const [filter, setFilter] = useState("all");
+  const [products, setProducts] = useState<any[]>(localProducts);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.from("products").select("*").order("created_at", { ascending: true });
+      if (data && data.length > 0) {
+        const merged = data.map((p: any) => {
+          const local = localProducts.find(lp => lp.name === p.name || lp.id === p.id);
+          return { ...p, image: local?.image || p.image };
+        });
+        setProducts(merged);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const displayed = filter === "all" ? products : products.filter((p) => p.id === filter);
 
@@ -30,10 +47,7 @@ export default function Gallery() {
           <div className="gallery-grid" id="gallery-grid">
             {displayed.map((p) => (
               <Link href={`/product/${p.id}`} key={p.id} className="gallery-item" data-cat={p.id}>
-                <div
-                  className="gallery-item-img"
-                  style={{ position: "relative", overflow: "hidden" }}
-                >
+                <div className="gallery-item-img" style={{ position: "relative", overflow: "hidden" }}>
                   <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
                 </div>
                 <div className="gallery-item-overlay">

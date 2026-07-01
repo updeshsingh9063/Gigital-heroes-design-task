@@ -2,11 +2,30 @@
 
 import Link from "next/link";
 import { useReveal } from "@/lib/utils";
-import { products } from "@/lib/data";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { products as localProducts } from "@/lib/data";
 import Footer from "@/components/layout/Footer";
 
 export default function Home() {
   useReveal();
+  const [products, setProducts] = useState<any[]>(localProducts); // Start with local for fast render
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.from("products").select("*").order("created_at", { ascending: true });
+      if (data && data.length > 0) {
+        // Merge Supabase data with local images for display
+        const merged = data.map((p: any) => {
+          const local = localProducts.find(lp => lp.name === p.name || lp.id === p.id);
+          return { ...p, image: local?.image || p.image, desc: p.description || local?.desc, tag: p.tag || local?.tag };
+        });
+        setProducts(merged);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   return (
     <>
@@ -28,7 +47,7 @@ export default function Home() {
             </div>
             <div className="hero-stats reveal reveal-delay-4">
               <div>
-                <div className="hero-stat-value">6</div>
+                <div className="hero-stat-value">{products.length || 6}</div>
                 <div className="hero-stat-label">Print Divisions</div>
               </div>
               <div>
@@ -43,33 +62,17 @@ export default function Home() {
           </div>
           <div className="hero-visual reveal reveal-delay-2">
             <div className="hero-cards">
-              <div className="hero-card">
-                <div className="hero-card-img" style={{ position: "relative", overflow: "hidden" }}>
-                  <img src={products.find(p => p.id === 'labels-stickers')?.image} alt="Labels" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
+              {products.slice(0, 3).map((p, i) => (
+                <div className="hero-card" key={p.id}>
+                  <div className="hero-card-img" style={{ position: "relative", overflow: "hidden" }}>
+                    <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
+                  </div>
+                  <div className="hero-card-body">
+                    <div className="hero-card-title">{p.name}</div>
+                    <div className="hero-card-meta">From £{Number(p.base_price || p.base || 0).toFixed(2)}/unit</div>
+                  </div>
                 </div>
-                <div className="hero-card-body">
-                  <div className="hero-card-title">Labels &amp; Stickers</div>
-                  <div className="hero-card-meta">From £0.12/unit</div>
-                </div>
-              </div>
-              <div className="hero-card">
-                <div className="hero-card-img" style={{ position: "relative", overflow: "hidden" }}>
-                  <img src={products.find(p => p.id === 'race-numbers')?.image} alt="Race Numbers" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
-                </div>
-                <div className="hero-card-body">
-                  <div className="hero-card-title">Race Numbers</div>
-                  <div className="hero-card-meta">Variable data</div>
-                </div>
-              </div>
-              <div className="hero-card">
-                <div className="hero-card-img" style={{ position: "relative", overflow: "hidden" }}>
-                  <img src={products.find(p => p.id === 'laser-cut')?.image} alt="Laser-Cut" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
-                </div>
-                <div className="hero-card-body">
-                  <div className="hero-card-title">Laser-Cut</div>
-                  <div className="hero-card-meta">Precision cut</div>
-                </div>
-              </div>
+              ))}
               <div className="hero-float-badge top-left">✓ Instant pricing</div>
               <div className="hero-float-badge bottom-right">✓ Free proofs</div>
             </div>
@@ -100,7 +103,7 @@ export default function Home() {
                 </div>
                 <div className="division-card-body">
                   <div className="division-card-title">{p.name}</div>
-                  <div className="division-card-desc">{p.desc}</div>
+                  <div className="division-card-desc">{p.description || p.desc}</div>
                   <span className="division-card-tag">{p.tag}</span>
                 </div>
               </Link>
@@ -151,14 +154,7 @@ export default function Home() {
           <div className="gallery-grid reveal">
             {products.slice(0, 3).map((p) => (
               <Link href={`/product/${p.id}`} key={p.id} className="gallery-item">
-                <div
-                  className="gallery-item-img"
-                  style={{
-                    position: "relative",
-                    overflow: "hidden",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
+                <div className="gallery-item-img" style={{ position: "relative", overflow: "hidden" }}>
                   <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
                 </div>
                 <div className="gallery-item-overlay">

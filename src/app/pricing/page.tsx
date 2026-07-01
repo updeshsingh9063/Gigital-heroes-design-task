@@ -1,14 +1,32 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { useReveal } from "@/lib/utils";
-import { products } from "@/lib/data";
+import { createClient } from "@/lib/supabase/client";
+import { products as localProducts } from "@/lib/data";
 import Footer from "@/components/layout/Footer";
 
-function fmt(n: number) { return "£" + n.toFixed(2); }
+function fmt(n: number) { return "£" + Number(n).toFixed(2); }
 
 export default function Pricing() {
   useReveal();
+  const [products, setProducts] = useState<any[]>(localProducts);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.from("products").select("*").order("created_at", { ascending: true });
+      if (data && data.length > 0) {
+        const merged = data.map((p: any) => {
+          const local = localProducts.find(lp => lp.name === p.name || lp.id === p.id);
+          return { ...p, image: local?.image || p.image };
+        });
+        setProducts(merged);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   return (
     <>
@@ -47,7 +65,7 @@ export default function Pricing() {
                 <div className="division-card-body" style={{ textAlign: "center", padding: "var(--space-xl)" }}>
                   <div className="division-card-title">{p.name}</div>
                   <div style={{ fontFamily: "var(--font-display)", fontSize: "32px", fontWeight: 600, color: "var(--accent)", margin: "var(--space-md) 0" }}>
-                    {fmt(p.base)}<span style={{ fontSize: "14px", color: "var(--graphite)", fontFamily: "var(--font-body)" }}>/unit</span>
+                    {fmt(p.base_price || p.base || 0)}<span style={{ fontSize: "14px", color: "var(--graphite)", fontFamily: "var(--font-body)" }}>/unit</span>
                   </div>
                   <button className="btn-ghost">Configure</button>
                 </div>
