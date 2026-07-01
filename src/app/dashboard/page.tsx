@@ -270,7 +270,16 @@ export default function Dashboard() {
                 const orderId = `DH-DRAFT-${Date.now()}`;
                 const { error: oErr } = await supabase.from("orders").insert({ id: orderId, customer_id: session.user.id, subtotal: 12.5, vat: 2.5, total: 15, status: "pending" });
                 if (oErr) { showToast("Order failed: " + oErr.message, "error"); return; }
-                const { error: jErr } = await supabase.from("jobs").insert({ order_id: orderId, status: "proof", artwork_json: elements, files_ready: true, price: 15 });
+                
+                // Store BOTH elements and the preview dataURL in the job's artwork_json
+                const { error: jErr } = await supabase.from("jobs").insert({ 
+                  order_id: orderId, 
+                  status: "proof", 
+                  artwork_json: { elements, preview: preview }, 
+                  files_ready: true, 
+                  price: 15 
+                });
+                
                 if (jErr) { showToast("Job failed: " + jErr.message, "error"); return; }
                 showToast("Order placed for £15.00! 🎉", "success");
                 fetchData(session);
@@ -289,18 +298,27 @@ export default function Dashboard() {
                       </div>
                     </div>
                   )}
-                  {designJobs.map(j => (
-                    <div key={j.id} style={{ background: "white", border: "1px solid var(--linen)", padding: "var(--space-md)", borderRadius: "var(--radius-lg)" }}>
-                      <div style={{ background: "linear-gradient(135deg, #4A7A8C22, #6B5B8C22)", borderRadius: "var(--radius-md)", padding: "var(--space-xl)", textAlign: "center", marginBottom: "var(--space-sm)", fontSize: 36 }}>🎨</div>
-                      <div style={{ fontWeight: 600, color: "var(--ink)", fontSize: 14 }}>Custom Design</div>
-                      <div style={{ fontSize: 12, color: "var(--stone)", marginTop: 2 }}>Order {j.order_id} · {fmtDate(j.created_at)}</div>
-                      <div style={{ fontSize: 12, color: "var(--graphite)", marginTop: 2 }}>£15.00 fixed price</div>
-                      <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                        <span className={`prod-status-badge ${j.status === "completed" ? "done" : "progress"}`} style={{ fontSize: 11 }}>{j.status}</span>
-                        <button className="btn-ghost" style={{ padding: "4px 12px", fontSize: "11px" }} onClick={() => handleReorder(j)}>🔁 Reorder</button>
+                  {designJobs.map(j => {
+                    const savedPreview = j.artwork_json?.preview;
+                    return (
+                      <div key={j.id} style={{ background: "white", border: "1px solid var(--linen)", padding: "var(--space-md)", borderRadius: "var(--radius-lg)" }}>
+                        {savedPreview ? (
+                          <div style={{ marginBottom: "var(--space-sm)", borderRadius: "var(--radius-md)", overflow: "hidden", border: "1px solid var(--linen)" }}>
+                            <img src={savedPreview} alt="Design Preview" style={{ width: "100%", display: "block" }} />
+                          </div>
+                        ) : (
+                          <div style={{ background: "linear-gradient(135deg, #4A7A8C22, #6B5B8C22)", borderRadius: "var(--radius-md)", padding: "var(--space-xl)", textAlign: "center", marginBottom: "var(--space-sm)", fontSize: 36 }}>🎨</div>
+                        )}
+                        <div style={{ fontWeight: 600, color: "var(--ink)", fontSize: 14 }}>Custom Design</div>
+                        <div style={{ fontSize: 12, color: "var(--stone)", marginTop: 2 }}>Order {j.order_id} · {fmtDate(j.created_at)}</div>
+                        <div style={{ fontSize: 12, color: "var(--graphite)", marginTop: 2 }}>£15.00 fixed price</div>
+                        <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                          <span className={`prod-status-badge ${j.status === "completed" ? "done" : "progress"}`} style={{ fontSize: 11 }}>{j.status}</span>
+                          <button className="btn-ghost" style={{ padding: "4px 12px", fontSize: "11px" }} onClick={() => handleReorder(j)}>🔁 Reorder</button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {!preview && designJobs.length === 0 && (
                     <div style={{ gridColumn: "1/-1", background: "white", border: "1px solid var(--linen)", borderRadius: "var(--radius-lg)", padding: "var(--space-3xl)", textAlign: "center", color: "var(--stone)" }}>
                       No saved designs yet. <Link href="/designer" style={{ color: "var(--accent)" }}>Create your first design →</Link>

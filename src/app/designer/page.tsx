@@ -312,23 +312,35 @@ export default function DesignerPage() {
       return;
     }
 
-    const { error: jobError } = await supabase.from('jobs').insert({
-      order_id: orderId,
-      status: 'proof',
-      artwork_json: elements,
-      files_ready: true,
-      price: 15
-    });
+    // Deselect elements to hide the transformer box
+    setSelectedId(null);
+    
+    // Wait a brief tick for the transformer to visually disappear, then capture preview
+    setTimeout(async () => {
+      let preview = "";
+      if (stageRef.current) {
+        preview = stageRef.current.toDataURL({ pixelRatio: 2 });
+      }
 
-    if (jobError) {
-      console.error(jobError);
-      showToast("Failed to submit job. Please try again.", "error");
-      return;
-    }
+      const { error: jobError } = await supabase.from('jobs').insert({
+        order_id: orderId,
+        status: 'proof',
+        artwork_json: { elements, preview },
+        files_ready: true,
+        price: 15
+      });
 
-    handleSave();
-    showToast("Submitted for proof 🎉", "success");
-    setTimeout(() => router.push("/dashboard"), 1800);
+      if (jobError) {
+        console.error(jobError);
+        showToast("Failed to submit job. Please try again.", "error");
+        return;
+      }
+
+      handleSave();
+      showToast("Submitted for proof 🎉", "success");
+      setTimeout(() => router.push("/dashboard"), 1800);
+    }, 50);
+
   };
 
   const filteredFonts = ALL_FONTS.filter(f => f.toLowerCase().includes(fontSearch.toLowerCase()));
