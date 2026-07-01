@@ -172,6 +172,7 @@ export default function AdminDashboard() {
 
   const navItems: { key: AdminSection; icon: string; label: string }[] = [
     { key: "pipeline", icon: "🏭", label: "Pipeline" },
+    { key: "proofs", icon: "👁️", label: "Proofs" },
     { key: "analytics", icon: "📊", label: "Analytics" },
     { key: "customers", icon: "👥", label: "Customers" },
     { key: "products", icon: "📦", label: "Products" },
@@ -231,28 +232,42 @@ export default function AdminDashboard() {
                       <span className={`prod-status-badge ${j.status}`}>{j.status}</span>
                     </div>
                     <div style={{ display: "flex", gap: "var(--space-sm)", marginTop: "var(--space-md)", flexWrap: "wrap" }}>
-                      {/* Download Artwork JSON */}
+                      {/* Download Artwork */}
                       <button className="btn-ghost" style={{ padding: "6px 14px", fontSize: "12px" }}
                         onClick={() => {
                           if (!j.artwork) { showToast("No artwork for this job yet.", ""); return; }
-                          const blob = new Blob([JSON.stringify(j.artwork, null, 2)], { type: "application/json" });
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement("a");
-                          a.href = url; a.download = `${j.order_id}_artwork.json`;
-                          a.click(); URL.revokeObjectURL(url);
-                          showToast("Artwork downloaded", "success");
+                          if (j.artwork.preview) {
+                            const a = document.createElement("a");
+                            a.href = j.artwork.preview; a.download = `${j.order_id}_artwork.png`;
+                            a.click(); showToast("Artwork downloaded", "success");
+                          } else {
+                            const blob = new Blob([JSON.stringify(j.artwork, null, 2)], { type: "application/json" });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement("a");
+                            a.href = url; a.download = `${j.order_id}_artwork.json`;
+                            a.click(); URL.revokeObjectURL(url);
+                            showToast("Artwork downloaded (JSON)", "success");
+                          }
                         }}>
                         🎨 Artwork
                       </button>
-                      {/* Download Print File (server-side) */}
+                      {/* Download Print File */}
                       <button className="btn-ghost" style={{ padding: "6px 14px", fontSize: "12px" }}
                         onClick={async () => {
-                          const res = await fetch("/api/print-file", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderId: j.order_id, elements: j.artwork || [], productType: j.product }) });
-                          if (!res.ok) { showToast("Print file generation failed", "error"); return; }
-                          const blob = await res.blob();
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement("a"); a.href = url; a.download = `${j.order_id}_print_manifest.json`; a.click(); URL.revokeObjectURL(url);
-                          showToast("Print file downloaded", "success");
+                          if (j.artwork?.preview) {
+                             const a = document.createElement("a");
+                             a.href = j.artwork.preview; a.download = `${j.order_id}_print_file.png`;
+                             a.click(); showToast("Print file downloaded", "success");
+                          } else {
+                             const res = await fetch("/api/print-file", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderId: j.order_id, elements: j.artwork || [], productType: j.product }) });
+                             if (!res.ok) { showToast("Failed to generate", "error"); return; }
+                             const blob = await res.blob();
+                             const url = window.URL.createObjectURL(blob);
+                             const a = document.createElement("a");
+                             a.href = url; a.download = `${j.order_id}_print_file.json`;
+                             a.click(); window.URL.revokeObjectURL(url);
+                             showToast("Print file downloaded", "success");
+                          }
                         }}>
                         🖨 Print File
                       </button>
@@ -293,6 +308,66 @@ export default function AdminDashboard() {
             </div>
           </>
         )}
+
+        {/* ============ PROOFS ============ */}
+        {section === "proofs" && (() => {
+          const proofJobs = jobs.filter(j => j.status === "proof" && j.artwork?.preview);
+          return (
+            <>
+              <div className="dash-header">
+                <h1 className="dash-title">Proof Management</h1>
+              </div>
+              <div style={{ background: "white", border: "1px solid var(--linen)", borderRadius: "var(--radius-lg)", padding: "var(--space-xl)" }}>
+                <h3 style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 600, color: "var(--ink)", marginBottom: "var(--space-lg)" }}>
+                  Designs Awaiting Proof
+                </h3>
+                {proofJobs.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "var(--space-3xl)", color: "var(--stone)" }}>
+                    No designs are waiting for proofs.
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gap: "var(--space-lg)" }}>
+                    {proofJobs.map(j => (
+                      <div key={j.id} style={{ display: "flex", gap: "var(--space-xl)", border: "1px solid var(--linen)", borderRadius: "var(--radius-lg)", padding: "var(--space-lg)" }}>
+                        <div style={{ width: "200px", borderRadius: "var(--radius-md)", overflow: "hidden", border: "1px solid var(--linen)", background: "var(--paper)" }}>
+                          <img src={j.artwork.preview} alt="Design Preview" style={{ width: "100%", display: "block" }} />
+                        </div>
+                        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                          <div>
+                            <div style={{ fontWeight: 600, color: "var(--ink)", fontSize: 16 }}>{j.name}</div>
+                            <div style={{ fontSize: 13, color: "var(--stone)", marginTop: 4 }}>Order {j.order_id} · {j.customer}</div>
+                            <div style={{ marginTop: 12, fontSize: 13, color: "var(--graphite)" }}>
+                              Review the generated design preview. If it looks good, send it to the customer for their final approval.
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", gap: "var(--space-md)", marginTop: "var(--space-md)" }}>
+                            <button className="btn-accent" style={{ padding: "8px 16px", fontSize: "13px" }}
+                              onClick={async () => {
+                                const supabase = createClient();
+                                const { error } = await supabase.from("proofs").insert({ job_id: j.id, version: 1, status: "pending" });
+                                if (error) { showToast("Failed to send proof", "error"); return; }
+                                showToast("Proof sent to user successfully!", "success");
+                              }}>
+                              ✉️ Send Proof to Customer
+                            </button>
+                            <button className="btn-ghost" style={{ padding: "8px 16px", fontSize: "13px" }}
+                              onClick={() => {
+                                const a = document.createElement("a");
+                                a.href = j.artwork.preview; a.download = `${j.order_id}_proof.png`;
+                                a.click();
+                              }}>
+                              📥 Download PNG
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          );
+        })()}
 
         {/* ============ ANALYTICS ============ */}
         {section === "analytics" && (
