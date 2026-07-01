@@ -13,21 +13,21 @@ export default function ResetPasswordPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Wait briefly for Supabase to detect the session from the URL hash/cookie
     const supabase = createClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
+
+    // Listen for auth state - INITIAL_SESSION fires on page load with any existing session
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         setSessionReady(true);
-      } else {
-        // Listen for when the session is established (after redirect from callback)
-        const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-          if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
-            setSessionReady(true);
-          }
-        });
-        return () => listener.subscription.unsubscribe();
       }
     });
+
+    // Also do a direct check in case onAuthStateChange already fired
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setSessionReady(true);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleReset = async () => {
