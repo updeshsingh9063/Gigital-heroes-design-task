@@ -435,6 +435,23 @@ export default function AdminDashboard() {
                     <div style={{ display: "flex", gap: "var(--space-sm)" }}>
                       <button className="btn-ghost" style={{ padding: "6px 14px", fontSize: "12px" }} onClick={() => { setEditingProduct(p); setProductModalMode("edit"); }}>Edit</button>
                       <button className="btn-ghost" style={{ padding: "6px 14px", fontSize: "12px" }} onClick={() => window.location.href = `/product/${p.id}`}>View →</button>
+                      <button
+                        className="btn-ghost"
+                        style={{ padding: "6px 14px", fontSize: "12px", borderColor: "var(--danger)", color: "var(--danger)" }}
+                        onClick={async () => {
+                          if (!confirm(`Are you sure you want to delete "${p.name}"? This cannot be undone.`)) return;
+                          const supabase = createClient();
+                          const { error } = await supabase.from("products").delete().eq("id", p.id);
+                          if (error) {
+                            showToast("Delete failed: " + error.message, "error");
+                          } else {
+                            showToast(`"${p.name}" deleted`, "success");
+                            setProducts(prev => prev.filter(x => x.id !== p.id));
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                 );
