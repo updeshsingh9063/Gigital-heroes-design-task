@@ -44,8 +44,8 @@ export default function Home() {
           <div className="hero-visual reveal reveal-delay-2">
             <div className="hero-cards">
               <div className="hero-card">
-                <div className="hero-card-img" style={{ background: "linear-gradient(135deg,#C45D3E,#8C5A4A)" }}>
-                  <div className="card-icon">🏷️</div>
+                <div className="hero-card-img" style={{ position: "relative", overflow: "hidden" }}>
+                  <img src={products.find(p => p.id === 'labels-stickers')?.image} alt="Labels" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
                 </div>
                 <div className="hero-card-body">
                   <div className="hero-card-title">Labels &amp; Stickers</div>
@@ -53,8 +53,8 @@ export default function Home() {
                 </div>
               </div>
               <div className="hero-card">
-                <div className="hero-card-img" style={{ background: "linear-gradient(135deg,#4A8C6F,#4A7A8C)" }}>
-                  <div className="card-icon">🏁</div>
+                <div className="hero-card-img" style={{ position: "relative", overflow: "hidden" }}>
+                  <img src={products.find(p => p.id === 'race-numbers')?.image} alt="Race Numbers" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
                 </div>
                 <div className="hero-card-body">
                   <div className="hero-card-title">Race Numbers</div>
@@ -62,8 +62,8 @@ export default function Home() {
                 </div>
               </div>
               <div className="hero-card">
-                <div className="hero-card-img" style={{ background: "linear-gradient(135deg,#6B5B8C,#4A7A8C)" }}>
-                  <div className="card-icon">✂️</div>
+                <div className="hero-card-img" style={{ position: "relative", overflow: "hidden" }}>
+                  <img src={products.find(p => p.id === 'laser-cut')?.image} alt="Laser-Cut" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
                 </div>
                 <div className="hero-card-body">
                   <div className="hero-card-title">Laser-Cut</div>
@@ -94,10 +94,8 @@ export default function Home() {
                 key={p.id}
                 className={`division-card reveal reveal-delay-${(i % 3) + 1}`}
               >
-                <div className="division-card-img" style={{ background: `linear-gradient(135deg,${p.color},${p.color}dd)` }}>
-                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "64px", opacity: 0.3 }}>
-                    {p.icon}
-                  </div>
+                <div className="division-card-img" style={{ position: "relative", overflow: "hidden" }}>
+                  <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
                   <div className="overlay"></div>
                 </div>
                 <div className="division-card-body">
@@ -156,12 +154,12 @@ export default function Home() {
                 <div
                   className="gallery-item-img"
                   style={{
-                    background: `linear-gradient(135deg,${p.color},${p.color}99)`,
+                    position: "relative",
+                    overflow: "hidden",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: "80px", opacity: 0.4,
                   }}
                 >
-                  {p.icon}
+                  <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
                 </div>
                 <div className="gallery-item-overlay">
                   <div>

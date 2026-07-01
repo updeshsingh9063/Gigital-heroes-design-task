@@ -30,8 +30,11 @@ export default function Gallery() {
           <div className="gallery-grid" id="gallery-grid">
             {displayed.map((p) => (
               <Link href={`/product/${p.id}`} key={p.id} className="gallery-item" data-cat={p.id}>
-                <div className="gallery-item-img" style={{ background: `linear-gradient(135deg,${p.color},${p.color}99)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "80px", opacity: 0.4 }}>
-                  {p.icon}
+                <div
+                  className="gallery-item-img"
+                  style={{ position: "relative", overflow: "hidden" }}
+                >
+                  <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
                 </div>
                 <div className="gallery-item-overlay">
                   <div>

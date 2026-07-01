@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { sizeMap, matMap } from "@/lib/data";
+import { sizeMap, matMap, products as localProducts } from "@/lib/data";
 import { showToast } from "@/lib/utils";
 import Footer from "@/components/layout/Footer";
 import { createClient } from "@/lib/supabase/client";
@@ -66,6 +66,9 @@ export default function ProductDetail() {
   const unitPrice = total / qty;
   const hasDiscount = qty >= 100;
 
+  const localP = localProducts.find(lp => lp.name === p.name || lp.id === pid);
+  const imageUrl = localP?.image || p.image;
+
   const handleAddToCart = () => {
     const item = { id: Date.now(), productId: pid, name: p.name, size: sz[sizeIdx], material: mt[matIdx], qty, price: total };
     const cart = JSON.parse(localStorage.getItem("dh_cart") || "[]");
@@ -85,8 +88,8 @@ export default function ProductDetail() {
           <div className="calculator-layout">
             {/* Left: product info + options */}
             <div>
-              <div style={{ background: `linear-gradient(135deg,${p.color},${p.color}dd)`, borderRadius: "var(--radius-lg)", padding: "var(--space-3xl)", textAlign: "center", marginBottom: "var(--space-xl)" }}>
-                <div style={{ fontSize: "120px", opacity: 0.3 }}>{p.icon}</div>
+              <div style={{ position: "relative", overflow: "hidden", borderRadius: "var(--radius-lg)", height: "300px", marginBottom: "var(--space-xl)" }}>
+                {imageUrl && <img src={imageUrl} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />}
               </div>
               <h1 style={{ fontFamily: "var(--font-display)", fontSize: "48px", fontWeight: 600, color: "var(--ink)", marginBottom: "var(--space-md)" }}>{p.name}</h1>
               <p style={{ fontSize: "17px", color: "var(--graphite)", lineHeight: 1.7, marginBottom: "var(--space-xl)" }}>{p.desc}</p>

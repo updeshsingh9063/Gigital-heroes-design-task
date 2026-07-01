@@ -5,6 +5,7 @@ import { useReveal } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import Footer from "@/components/layout/Footer";
 import { createClient } from "@/lib/supabase/client";
+import { products as localProducts } from "@/lib/data";
 
 export default function Products() {
   const [products, setProducts] = useState<any[]>([]);
@@ -39,25 +40,25 @@ export default function Products() {
             </div>
           ) : (
             <div className="divisions-grid">
-              {products.map((p, i) => (
-                <Link
-                  href={`/product/${p.id}`}
-                  key={p.id}
-                  className={`division-card reveal reveal-delay-${(i % 3) + 1}`}
-                >
-                  <div className="division-card-img" style={{ background: `linear-gradient(135deg,${p.color},${p.color}dd)` }}>
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "80px", opacity: 0.3 }}>
-                      {p.icon}
+              {products.map((p, i) => {
+                const localP = localProducts.find(lp => lp.name === p.name || lp.id === p.id);
+                const imageUrl = localP?.image || p.image;
+                return (
+                  <Link
+                    href={`/product/${p.id}`}
+                    key={p.id}
+                    className={`division-card reveal reveal-delay-${(i % 3) + 1}`}
+                  >
+                    <div className="division-card-img" style={{ position: "relative", overflow: "hidden" }}>
+                      {imageUrl && <img src={imageUrl} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />}
                     </div>
-                    <div className="overlay"></div>
-                  </div>
                   <div className="division-card-body">
                     <div className="division-card-title">{p.name}</div>
                     <div className="division-card-desc">{p.description}</div>
                     <span className="division-card-tag">{p.tag}</span>
                   </div>
                 </Link>
-              ))}
+              )})}
             </div>
           )}
         </div>

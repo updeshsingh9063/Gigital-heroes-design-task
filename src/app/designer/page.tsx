@@ -300,9 +300,9 @@ export default function DesignerPage() {
     const { error: orderError } = await supabase.from('orders').insert({
       id: orderId,
       customer_id: session.user.id,
-      subtotal: 0,
-      vat: 0,
-      total: 0,
+      subtotal: 12.5,
+      vat: 2.5,
+      total: 15,
       status: 'pending'
     });
 
@@ -316,7 +316,8 @@ export default function DesignerPage() {
       order_id: orderId,
       status: 'proof',
       artwork_json: elements,
-      files_ready: true
+      files_ready: true,
+      price: 15
     });
 
     if (jobError) {

@@ -5,10 +5,10 @@ import { showToast } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 
 interface AuthModalProps {
-  mode: "login" | "register" | null;
+  mode: "login" | "register" | "forgot_password" | null;
   onClose: () => void;
-  onSwitchMode: (mode: "login" | "register") => void;
-  onSuccess: (name: string) => void;
+  onSwitchMode: (mode: "login" | "register" | "forgot_password") => void;
+  onSuccess: (name: string, role?: string) => void;
 }
 
 export default function AuthModal({ mode, onClose, onSwitchMode, onSuccess }: AuthModalProps) {
@@ -59,16 +59,34 @@ export default function AuthModal({ mode, onClose, onSwitchMode, onSuccess }: Au
     }
     
     setLoginError("");
-    // Fetch profile to get name
+    // Fetch profile to get name and role
     const { data: profile } = await supabase
       .from("profiles")
-      .select("full_name")
+      .select("full_name, role")
       .eq("id", data.user.id)
       .single();
 
-    onSuccess(profile?.full_name || "User");
+    onSuccess(profile?.full_name || "User", profile?.role);
     onClose();
     showToast("Signed in successfully! Welcome back 👋", "success");
+  };
+
+  const doResetPassword = async () => {
+    if (!email) {
+      showToast("Please enter your email", "error");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      showToast(error.message, "error");
+    } else {
+      showToast("Password reset link sent to your email!", "success");
+      onSwitchMode("login");
+    }
   };
 
   const doRegister = async () => {
@@ -117,7 +135,32 @@ export default function AuthModal({ mode, onClose, onSwitchMode, onSuccess }: Au
       <div className="modal-container auth-modal-container" style={{ position: "relative" }}>
         <button className="modal-close" onClick={onClose}>×</button>
         <div id="auth-content">
-          {mode === "login" ? (
+          {mode === "forgot_password" ? (
+            <>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: "32px", fontWeight: 600, color: "var(--ink)", marginBottom: "8px" }}>
+                Reset Password
+              </h2>
+              <p style={{ color: "var(--graphite)", marginBottom: "var(--space-xl)" }}>
+                Enter your email address and we'll send you a link to reset your password.
+              </p>
+              <div className="form-group">
+                <label className="form-label">Email</label>
+                <input className="form-input" type="email" placeholder="you@company.com" value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && doResetPassword()}
+                />
+              </div>
+              <button className="btn-accent btn-lg" style={{ width: "100%", marginBottom: "var(--space-md)" }} onClick={doResetPassword} disabled={loading}>
+                {loading ? "Sending..." : "Send Reset Link"}
+              </button>
+              <p style={{ textAlign: "center", marginTop: "var(--space-lg)", fontSize: "14px", color: "var(--graphite)" }}>
+                Remember your password?{" "}
+                <a href="#" onClick={(e) => { e.preventDefault(); onSwitchMode("login"); }} style={{ color: "var(--accent)", fontWeight: 600 }}>
+                  Sign in
+                </a>
+              </p>
+            </>
+          ) : mode === "login" ? (
             <>
               <h2 style={{ fontFamily: "var(--font-display)", fontSize: "32px", fontWeight: 600, color: "var(--ink)", marginBottom: "8px" }}>
                 Welcome back
@@ -132,8 +175,11 @@ export default function AuthModal({ mode, onClose, onSwitchMode, onSuccess }: Au
                   onKeyDown={(e) => e.key === "Enter" && doLogin()}
                 />
               </div>
-              <div className="form-group">
-                <label className="form-label">Password</label>
+              <div className="form-group" style={{ marginBottom: "8px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <label className="form-label">Password</label>
+                  <a href="#" onClick={(e) => { e.preventDefault(); onSwitchMode("forgot_password"); }} style={{ fontSize: "13px", color: "var(--accent)", fontWeight: 500 }}>Forgot password?</a>
+                </div>
                 <input className="form-input" type="password" placeholder="Enter your password" value={password}
                   onChange={(e) => { setPassword(e.target.value); setLoginError(""); }}
                   onKeyDown={(e) => e.key === "Enter" && doLogin()}

@@ -13,7 +13,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
-  const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
+  const [authMode, setAuthMode] = useState<"login" | "register" | "forgot_password" | null>(null);
   const [user, setUser] = useState<{ name: string, role?: string } | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -195,7 +195,7 @@ export default function Navbar() {
           mode={authMode}
           onClose={() => setAuthMode(null)}
           onSwitchMode={(m) => setAuthMode(m)}
-          onSuccess={(name) => setUser({ name })}
+          onSuccess={(name, role) => setUser({ name, role })}
         />
       )}
     </>

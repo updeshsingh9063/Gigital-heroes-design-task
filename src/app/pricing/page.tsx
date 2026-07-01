@@ -41,8 +41,10 @@ export default function Pricing() {
           <div className="divisions-grid reveal">
             {products.map((p) => (
               <Link href={`/product/${p.id}`} key={p.id} className="division-card">
+                <div className="division-card-img" style={{ position: "relative", overflow: "hidden", height: "160px" }}>
+                  <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
+                </div>
                 <div className="division-card-body" style={{ textAlign: "center", padding: "var(--space-xl)" }}>
-                  <div style={{ fontSize: "48px", marginBottom: "var(--space-md)" }}>{p.icon}</div>
                   <div className="division-card-title">{p.name}</div>
                   <div style={{ fontFamily: "var(--font-display)", fontSize: "32px", fontWeight: 600, color: "var(--accent)", margin: "var(--space-md) 0" }}>
                     {fmt(p.base)}<span style={{ fontSize: "14px", color: "var(--graphite)", fontFamily: "var(--font-body)" }}>/unit</span>
